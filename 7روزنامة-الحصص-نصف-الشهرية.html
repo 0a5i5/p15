@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منشئ روزنامة الحصص نصف الشهرية (أ / ب)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F6F7; --surface:#FFFFFF; --ink:#1E2A38; --ink-soft:#5B6B7A;
+    --line:#DDE5EA; --line-soft:#EBF0F3;
+    --primary:#1F6F5C; --primary-dark:#154F41; --primary-soft:#E4F1EC;
+    --danger:#B4432D;
+	--week-b:#b31e1e; --week-b-soft:#E4F1EC;
+    --week-a:#1F6F5C; --week-a-soft:#f2d8d9;
+    
+	<!-- --week-b:#2B5D8C; --week-b-soft:#E6EEF6; -->
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Tajawal', sans-serif;line-height:1.5;}
+  h1,h2,h3,.brandfont{font-family:'Cairo', sans-serif;}
+
+  .app-shell{max-width:1180px;margin:0 auto;padding:22px 20px 60px;}
+  .app-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .app-header h1{font-size:1.35rem;font-weight:800;color:var(--primary-dark);margin:0;}
+  .app-header p{margin:2px 0 0;color:var(--ink-soft);font-size:.88rem;}
+  .save-status{font-size:.78rem;color:var(--ink-soft);}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;}
+  .card h2{font-size:1rem;font-weight:700;color:var(--primary-dark);margin:0 0 14px;display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;}
+  .card h2 .title-wrap{display:flex;align-items:center;gap:8px;}
+  .card h2 .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:.72rem;font-weight:700;flex:none;}
+  .card h2 .subtools{display:flex;gap:8px;flex-wrap:wrap;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  @media (max-width:760px){ .grid-2,.grid-3{grid-template-columns:1fr;} }
+
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:.82rem;font-weight:700;color:var(--ink-soft);}
+  .field input[type=text],.field input[type=date],.field select,.field textarea{
+    border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:.9rem;background:#fff;color:var(--ink);
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--primary-soft);border-color:var(--primary);}
+  .field .hint{font-size:.74rem;color:var(--ink-soft);}
+
+  .radio-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+  .radio-row label{display:flex;align-items:center;gap:6px;font-size:.88rem;cursor:pointer;border:1px solid var(--line);padding:7px 12px;border-radius:20px;}
+  .radio-row input{accent-color:var(--primary);}
+  .radio-row label:has(input:checked){border-color:var(--primary);background:var(--primary-soft);color:var(--primary-dark);font-weight:700;}
+
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;padding:9px 16px;font-size:.88rem;font-weight:700;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--primary);color:var(--primary-dark);}
+  .btn-sm{padding:6px 12px;font-size:.78rem;}
+  .btn-danger{background:#fff;border:1px solid var(--danger);color:var(--danger);padding:5px 10px;font-size:.76rem;}
+  .btn-danger:hover{background:var(--danger);color:#fff;}
+  .btn-edit{background:#fff;border:1px solid var(--primary);color:var(--primary);padding:5px 10px;font-size:.76rem;}
+  .btn-edit:hover{background:var(--primary);color:#fff;}
+  .file-label{display:inline-flex;align-items:center;}
+  .file-label input{display:none;}
+
+  .event-form{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1.4fr auto auto;gap:10px;align-items:end;padding:14px;background:var(--bg);border:1px dashed var(--line);border-radius:8px;margin-bottom:14px;}
+  @media (max-width:980px){ .event-form{grid-template-columns:1fr 1fr;} }
+
+  table.events-table{width:100%;border-collapse:collapse;font-size:.86rem;}
+  table.events-table th{text-align:right;color:var(--ink-soft);font-weight:700;font-size:.76rem;border-bottom:2px solid var(--line);padding:6px 8px;}
+  table.events-table td{padding:8px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
+  table.events-table tr:last-child td{border-bottom:none;}
+  table.events-table tr.editing-row{background:var(--primary-soft);}
+  .tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.74rem;font-weight:700;color:#fff;}
+  .impact-badge{font-size:.72rem;color:var(--ink-soft);}
+  .empty-note{color:var(--ink-soft);font-size:.85rem;padding:10px 2px;}
+  .actions-cell{display:flex;gap:6px;}
+
+  .toolbar{position:sticky;top:0;z-index:20;display:flex;justify-content:flex-end;gap:10px;background:linear-gradient(var(--bg) 70%, transparent);padding:10px 0 16px;flex-wrap:wrap;}
+
+  .preview-wrapper{overflow:auto;background:#DEE6EA;border-radius:var(--radius);padding:24px;margin-bottom:26px;}
+
+  /* ---------- التقرير الكامل (الروزنامة) ---------- */
+  #printArea{
+    width:281mm;min-height:194mm;margin:0 auto;background:#fff;
+    box-shadow:0 2px 14px rgba(0,0,0,.18);padding:8mm 10mm;font-size:10px;
+  }
+  #printArea, #printArea *{ font-weight:700; }
+
+  .report-header{display:grid;grid-template-columns:1fr 2.2fr 1fr;align-items:start;padding-bottom:.6em;border-bottom:2.5px solid var(--primary);margin-bottom:.7em;}
+  .report-header .school-name{font-family:'Cairo',sans-serif;font-weight:800;font-size:1.5em;color:var(--ink);text-align:right;}
+  .report-header .report-title{font-family:'Cairo',sans-serif;font-weight:900;font-size:2.5em;color:var(--primary-dark);text-align:center;line-height:1.28;margin-bottom:1.5em;}
+  .report-header .report-meta{text-align:left;font-size:1.5em;color:var(--ink-soft);}
+  .report-header .report-meta div{margin-bottom:.2em;}
+
+  .legend{display:flex;gap:1.3em;flex-wrap:wrap;align-items:center;font-size:1.5em;margin-bottom:1em;color:var(--ink-soft);}
+  .legend span{display:inline-flex;align-items:center;gap:.4em;}
+  .legend i{width:.9em;height:.9em;border-radius:3px;display:inline-block;flex:none;}
+
+  .weeks-grid{display:grid;column-gap:1.1em;row-gap:.42em;}
+  .week-row{display:flex;align-items:center;justify-content:space-between;gap:.6em;border:1.5px solid var(--line);border-radius:.5em;padding:.4em .7em;background:#fff;min-width:0;}
+  .week-row .week-range{font-size:1.5em;color:var(--ink);white-space:normal;word-break:keep-all;}
+  .week-row .week-side{display:flex;flex-direction:column;align-items:flex-end;gap:.15em;min-width:0;}
+  .week-row .week-badge{font-family:'Cairo',sans-serif;font-size:1.5em;padding:.15em .8em;border-radius:1em;white-space:nowrap;}
+  <!-- .week-row .week-note{font-size:1em;color:var(--ink-soft);white-space:normal;max-width:13em;overflow-wrap:break-word;text-align:left;} -->
+  .week-row
+.week-note {
+    font-size: 1em;
+    color: var(--ink-soft);
+    white-space: normal;
+    max-width: 13em;
+    overflow-wrap: break-word;
+    text-align: left;
+    font-weight: bold;
+}
+  .week-row.week-a{border-color:var(--week-a);} .week-row.week-a .week-badge{background:var(--week-a-soft);color:var(--week-a);}
+  .week-row.week-b{border-color:var(--week-b);} .week-row.week-b .week-badge{background:var(--week-b-soft);color:var(--week-b);}
+
+  .report-footer{margin-top:2em;padding-top:.4em;border-top:1px solid var(--line);font-size:1.5em;color:var(--ink-soft);display:flex;justify-content:space-between;}
+
+  
+ /* ---------- إعلان أسبوع محدد (بوستر) ---------- */
+
+ .week-poster{
+  width:297mm;              /* A4 landscape بالضبط */
+  height:210mm;
+  box-sizing:border-box;
+  margin:0 auto;
+  background:#fff;
+  position:relative;
+  box-shadow:0 2px 14px rgba(0,0,0,.18); /* يظهر على الشاشة فقط */
+  padding:10mm;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  font-family:'Cairo',sans-serif;
+  color:var(--ink);
+  font-weight:800;
+  font-size:12pt;
+  text-align:center;
+  /* حذفنا gap:2cm لأنّنا سنضبط التباعد يدويًا */
+}
+
+.week-poster .poster-title{
+  font-size:100pt;
+  line-height:1.2;
+  font-weight:900;
+  color:var(--primary-dark);
+  white-space:nowrap;
+  margin:0;
+}
+
+.week-poster .poster-sub{
+  font-size:40pt;
+  line-height:1.2;
+  font-weight:700;
+  color:var(--ink-soft);
+  white-space:nowrap;
+  margin:0.5cm 0 0;         /* مسافة اختيارية بين العنوان والعنوان الفرعي */
+}
+
+.week-poster .poster-line{
+  font-size:55pt;
+  line-height:1.2;
+  font-weight:800;
+  white-space:nowrap;
+  color:var(--ink);
+  margin:0;
+}
+
+/* ✅ interligne = 1.5cm بين عنوان الإعلان وأسطر "من يوم..." / "إلى يوم..." */
+.week-poster .poster-title + .poster-line,
+.week-poster .poster-sub   + .poster-line{
+  margin-top:1.5cm;
+}
+
+/* مسافة صغيرة بين "من يوم..." و"إلى يوم..." (يمكنك تغييرها) */
+.week-poster .poster-line + .poster-line{
+  margin-top:1cm;
+}
+
+/* ✅ التذييل: دائما أسفل الورقة على 1cm من نهايتها */
+.week-poster .poster-foot{
+  position:absolute;
+  left:10mm;
+  right:10mm;
+  bottom:10mm;              /* 10mm = 1cm من حافة الورقة */
+  font-size:20pt;
+  font-weight:700;
+  color:var(--ink-soft);
+  white-space:nowrap;
+  text-align:center;
+}
+
+/* ---------- الطباعة ---------- */
+@media print{
+  @page{ size:A4 landscape; margin:0; }  /* حافة الورقة = البوستر نفسه */
+  html, body{ background:#fff; margin:0; padding:0; }
+  .no-print{ display:none !important; }
+  .preview-wrapper{ overflow:visible; background:#fff; padding:0; border-radius:0; margin:0; }
+  #printArea{ box-shadow:none; margin:0; width:297mm; }
+  .week-poster{ box-shadow:none; margin:0; width:297mm; height:210mm; }
+  .app-shell{ max-width:none; padding:0; margin:0; }
+}
+  
+ 
+  
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <div class="app-header no-print">
+    <div>
+      <h1>منشئ روزنامة الحصص نصف الشهرية</h1>
+      <p>حدّد بيانات المؤسسة والفترة الدراسية والعطل، ثم عاين الروزنامة أو إعلان أسبوع محدد واطبع على ورقة A4 بالعرض.</p>
+    </div>
+    <div class="save-status" id="saveStatus"></div>
+  </div>
+
+  <!-- 1. بيانات عامة -->
+  <div class="card no-print">
+    <h2><span class="title-wrap"><span class="num">1</span> بيانات المؤسسة والعنوان</span></h2>
+    <div class="grid-3" style="margin-bottom:14px;">
+      <div class="field">
+        <label>اسم المؤسسة (يظهر أعلى يمين الورقة)</label>
+        <input type="text" id="schoolName" placeholder="مثال: المدرسة الإعدادية...">
+      </div>
+      <div class="field">
+        <label>السنة الدراسية</label>
+        <input type="text" id="schoolYear" placeholder="مثال: 2026/2027">
+      </div>
+      <div class="field">
+        <label>عنوان مخصص (اختياري، يُلغي العنوان التلقائي)</label>
+        <input type="text" id="customTitle" placeholder="اتركه فارغًا لاستعمال العنوان التلقائي">
+      </div>
+    </div>
+    <div class="field">
+      <label>نمط العنوان التلقائي</label>
+      <div class="radio-row">
+        <label><input type="radio" name="titleMode" value="period"> للفترة المحددة</label>
+        <label><input type="radio" name="titleMode" value="trimester"> للثلاثي</label>
+        <label><input type="radio" name="titleMode" value="year"> للسنة الدراسية</label>
+      </div>
+    </div>
+    <div id="trimesterWrap" class="field" style="margin-top:10px;max-width:220px;display:none;">
+      <label>رقم الثلاثي</label>
+      <select id="trimester">
+        <option value="1">الأول</option>
+        <option value="2">الثاني</option>
+        <option value="3">الثالث</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 2. الفترة والمرجع -->
+  <div class="card no-print">
+    <h2><span class="title-wrap"><span class="num">2</span> الفترة الزمنية ونقطة انطلاق التناوب (أ / ب)</span></h2>
+    <div class="grid-3">
+      <div class="field">
+        <label>بداية فترة الطباعة</label>
+        <input type="date" id="periodStart">
+      </div>
+      <div class="field">
+        <label>نهاية فترة الطباعة</label>
+        <input type="date" id="periodEnd">
+      </div>
+      <div class="field">
+        <label>الأسبوع الدراسي</label>
+        <input type="text" value="من الإثنين إلى السبت" disabled>
+      </div>
+      <div class="field">
+        <label>تاريخ مرجعي داخل أسبوع معروف</label>
+        <input type="date" id="anchorDate">
+        <span class="hint">أي تاريخ ضمن أسبوع تعرف تسميته (أ أو ب) — سيُعتمد لحساب بقية الأسابيع تناوبًا.</span>
+      </div>
+      <div class="field">
+        <label>تسمية ذلك الأسبوع</label>
+        <select id="anchorLabel">
+          <option value="أ">الأسبوع (أ)</option>
+          <option value="ب">الأسبوع (ب)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. العطل والأعياد والامتحانات وغيرها -->
+  <div class="card no-print">
+    <h2>
+      <span class="title-wrap"><span class="num">3</span> العطل والأعياد والامتحانات ومناسبات أخرى</span>
+      <span class="subtools">
+        <button class="btn-ghost btn-sm" id="exportBtn" type="button">تنزيل نسخة من البيانات (JSON)</button>
+        <label class="file-label btn-ghost btn-sm" for="importInput">استيراد نسخة محفوظة
+          <input type="file" id="importInput" accept="application/json">
+        </label>
+        <button class="btn-ghost btn-sm" id="clearEventsBtn" type="button">حذف كل الأحداث</button>
+      </span>
+    </h2>
+    <div class="field" style="margin-bottom:12px;">
+      <span class="hint">
+        اختر تأثير كل حدث على تناوب الأسابيع:
+        «اقتطاع من الأسبوع» يقتصّ الأيام من بداية/نهاية الأسبوع وتبقى تسمية (أ/ب) قائمة —
+        «استثناء الأسبوع بالكامل» يُلغي الأسبوع من التناوب فيستأنف الأسبوع الموالي كأن هذا الأسبوع غير موجود —
+        «بدون تأثير» يُستعمل لمناسبات إعلامية (اجتماعات، أنشطة...) تظهر في الروزنامة دون أن تغيّر شيئًا في حساب الأسابيع.
+        يمكنك اختيار أي تسمية للنوع (عطلة، عيد، امتحان، مناسبة، أو أي تسمية أخرى تريدها).
+      </span>
+    </div>
+    <div class="event-form">
+      <div class="field">
+        <label>النوع (حرّ)</label>
+        <input type="text" id="evType" list="typeList" placeholder="عطلة، عيد، امتحان، مناسبة...">
+        <datalist id="typeList"></datalist>
+      </div>
+      <div class="field">
+        <label>التأثير على التناوب</label>
+        <select id="evImpact">
+          <option value="trim">اقتطاع من الأسبوع</option>
+          <option value="excludeWeek">استثناء الأسبوع بالكامل</option>
+          <option value="none">بدون تأثير (إعلامي)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>من تاريخ</label>
+        <input type="date" id="evStart">
+      </div>
+      <div class="field" id="evEndWrap">
+        <label>إلى تاريخ</label>
+        <input type="date" id="evEnd">
+      </div>
+      <div class="field">
+        <label>التسمية / التفاصيل</label>
+        <input type="text" id="evLabel" placeholder="مثال: عطلة الخريف">
+      </div>
+      <button class="btn-primary" id="addEventBtn" type="button">إضافة</button>
+      <button class="btn-ghost" id="cancelEditBtn" type="button" style="display:none;">إلغاء</button>
+    </div>
+    <table class="events-table">
+      <thead>
+        <tr><th>النوع</th><th>التأثير</th><th>من</th><th>إلى</th><th>التسمية</th><th></th></tr>
+      </thead>
+      <tbody id="eventsBody"></tbody>
+    </table>
+    <div id="eventsEmpty" class="empty-note" style="display:none;">لا توجد عطل أو امتحانات أو مناسبات مضافة بعد.</div>
+  </div>
+
+  <div class="toolbar no-print">
+    <button class="btn-ghost" id="refreshBtn" type="button">تحديث المعاينة</button>
+    <button class="btn-primary" id="printCalendarBtn" type="button">طباعة الروزنامة الكاملة</button>
+  </div>
+
+  <div class="card no-print" style="padding:0;background:transparent;border:none;">
+    <h2 style="padding:0 4px;">معاينة الروزنامة الكاملة (ورقة A4 بالعرض)</h2>
+  </div>
+  <div class="preview-wrapper" id="calendarPreviewWrap">
+    <div id="printArea">
+      <div class="report-header">
+        <div class="school-name" id="outSchoolName"></div>
+        <div class="report-title" id="outTitle"></div>
+        <div class="report-meta" id="outMeta"></div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="weeks-grid" id="weeksGrid"></div>
+      <div class="report-footer">
+        <span id="outFooterLeft"></span>
+        <span>نظام الحصص نصف الشهرية — الأسبوع (أ) / الأسبوع (ب)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. طباعة إعلان أسبوع محدد -->
+  <div class="card no-print">
+    <h2><span class="title-wrap"><span class="num">4</span> طباعة إعلان أسبوع محدد</span></h2>
+    <div class="field" style="max-width:460px;margin-bottom:14px;">
+      <label>اختر الأسبوع المراد طباعة إعلانه</label>
+      <select id="weekSelect"></select>
+      <span class="hint">تُعرض قائمة الأسابيع ضمن الفترة المحددة أعلاه، وتُحدَّث تلقائيًا عند تغيير الإعدادات أو الأحداث.</span>
+    </div>
+    <button class="btn-primary" id="printPosterBtn" type="button">طباعة إعلان هذا الأسبوع</button>
+  </div>
+
+  <div class="card no-print" style="padding:0;background:transparent;border:none;">
+    <h2 style="padding:0 4px;">معاينة إعلان الأسبوع (ورقة A4 بالعرض)</h2>
+  </div>
+  <div class="preview-wrapper" id="posterPreviewWrap">
+    <div id="weekPoster" class="week-poster">
+      <div class="poster-title" id="posterTitle"></div>
+      <div class="poster-sub" id="posterSub" style="display:none;"></div>
+      <div class="poster-line" id="posterFrom"></div>
+      <div class="poster-line" id="posterTo"></div>
+      <div class="poster-foot" id="posterFoot" style="display:none;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===================== ثوابت التقويم ===================== */
+const MONTHS = ["جانفي","فيفري","مارس","أفريل","ماي","جوان","جويلية","أوت","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+const WEEKDAYS = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const STORAGE_KEY = "biweekly_schedule_app_v2";
+const FIXED_TYPE_COLORS = { "عطلة":"#B4552D", "عيد":"#8C6A2B", "امتحان":"#6A4C93" };
+const ROTATE_PALETTE = ["#2B5D8C","#3D7A5E","#9C4A73","#5C6E8C","#8C6A3D","#4A5A8C","#8C4A4A","#4A8C6A","#6E5C8C"];
+const DEFAULT_TYPES = ["عطلة","عيد","امتحان","مناسبة"];
+
+/* ===================== أدوات التاريخ ===================== */
+function pad2(n){ return n<10 ? "0"+n : ""+n; }
+function parseDate(str){ if(!str) return null; const [y,m,d]=str.split("-").map(Number); return new Date(y,m-1,d); }
+function toISO(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function sameDate(a,b){ return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function getMonday(d){ const dow=d.getDay(); const diff = dow===0 ? -6 : (1-dow); return addDays(d,diff); }
+function dayName(d){ return WEEKDAYS[d.getDay()]; }
+function fmtShort(d){ return `${pad2(d.getDate())} ${MONTHS[d.getMonth()]}`; }
+function fmtFull(d){ return `${pad2(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
+function uniq(arr){ return [...new Set(arr)]; }
+function rangeLabel(s,e){
+  const sameMonth = s.getMonth()===e.getMonth() && s.getFullYear()===e.getFullYear();
+  const sameYear = s.getFullYear()===e.getFullYear();
+  if(sameMonth) return `${pad2(s.getDate())} - ${pad2(e.getDate())} ${MONTHS[s.getMonth()]} ${s.getFullYear()}`;
+  if(sameYear) return `${fmtShort(s)} - ${fmtShort(e)} ${s.getFullYear()}`;
+  return `${fmtFull(s)} - ${fmtFull(e)}`;
+}
+
+/* ===================== الحالة والتخزين ===================== */
+function defaultState(){
+  return {
+    schoolName:"", schoolYear:"2026/2027", customTitle:"", titleMode:"period", trimester:1,
+    periodStart:"2026-09-14", periodEnd:"2027-04-16",
+    anchorDate:"2026-09-14", anchorLabel:"أ",
+    events:[], typeColors:{}
+  };
+}
+let state = loadState();
+function loadState(){
+  try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) return Object.assign(defaultState(), JSON.parse(raw)); }catch(e){}
+  return defaultState();
+}
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const s=document.getElementById("saveStatus");
+    if(s){ const t=new Date(); s.textContent = `تم الحفظ تلقائيًا — ${pad2(t.getHours())}:${pad2(t.getMinutes())}`; }
+  }catch(e){}
+}
+function getTypeColor(type){
+  if(!type) return "#5B6B7A";
+  if(FIXED_TYPE_COLORS[type]) return FIXED_TYPE_COLORS[type];
+  if(!state.typeColors) state.typeColors={};
+  if(!state.typeColors[type]){
+    const used = Object.keys(state.typeColors).length;
+    state.typeColors[type] = ROTATE_PALETTE[used % ROTATE_PALETTE.length];
+  }
+  return state.typeColors[type];
+}
+
+/* ===================== منطق حساب الأسابيع ===================== */
+function collectOverlap(events, days, impact){
+  const res=[];
+  events.filter(e=>e.impact===impact).forEach(e=>{
+    const s=parseDate(e.start), en=parseDate(e.end||e.start);
+    days.forEach((d,idx)=>{ if(d>=s && d<=en) res.push({dayIndex:idx, label:e.label, type:e.type}); });
+  });
+  return res;
+}
+
+function buildWeekBlock(monday, events){
+  const days=[0,1,2,3,4,5].map(i=>addDays(monday,i));
+  const mondayISO=toISO(monday);
+
+  const weekEvent = events.find(e => e.impact==="excludeWeek" && e.start===mondayISO);
+  const trimEvents = collectOverlap(events, days, "trim");
+  const noteEvents = collectOverlap(events, days, "none");
+
+  let closed=false, closedType="", closedLabel="";
+  if(weekEvent){
+    closed=true; closedType = weekEvent.type || "عطلة"; closedLabel = weekEvent.label || "";
+  } else {
+    const closedSet = new Set(trimEvents.map(x=>x.dayIndex));
+    if(closedSet.size===6){
+      closed=true;
+      closedType = trimEvents[0] ? trimEvents[0].type : "عطلة";
+      closedLabel = uniq(trimEvents.map(x=>x.label).filter(Boolean)).join("، ");
+    }
+  }
+
+  let startIdx=0, endIdx=5;
+  if(!closed){
+    const closedSet = new Set(trimEvents.map(x=>x.dayIndex));
+    while(startIdx<=5 && closedSet.has(startIdx)) startIdx++;
+    while(endIdx>=0 && closedSet.has(endIdx)) endIdx--;
+  }
+
+  return { monday, saturday:days[5], days, closed, closedType, closedLabel, trimEvents, noteEvents, effStart:days[startIdx], effEnd:days[endIdx], label:null };
+}
+
+function assignLabels(weeks, anchorIndex, anchorLabel){
+  const flip = l => l==="أ" ? "ب" : "أ";
+  if(!weeks[anchorIndex].closed) weeks[anchorIndex].label = anchorLabel;
+  let last = weeks[anchorIndex].closed ? null : anchorLabel;
+  for(let i=anchorIndex+1;i<weeks.length;i++){
+    if(weeks[i].closed){ weeks[i].label=null; continue; }
+    last = (last===null) ? anchorLabel : flip(last);
+    weeks[i].label = last;
+  }
+  let next = weeks[anchorIndex].closed ? null : anchorLabel;
+  for(let i=anchorIndex-1;i>=0;i--){
+    if(weeks[i].closed){ weeks[i].label=null; continue; }
+    next = (next===null) ? anchorLabel : flip(next);
+    weeks[i].label = next;
+  }
+}
+
+function computeWeeks(st){
+  const pStart=parseDate(st.periodStart), pEnd=parseDate(st.periodEnd), anchorD=parseDate(st.anchorDate);
+  if(!pStart || !pEnd || !anchorD) return [];
+  const rangeStartMonday = getMonday(pStart);
+  const rangeEndMonday = getMonday(pEnd);
+  const anchorMonday = getMonday(anchorD);
+  const overallStart = anchorMonday < rangeStartMonday ? anchorMonday : rangeStartMonday;
+  const overallEndMonday = anchorMonday > rangeEndMonday ? anchorMonday : rangeEndMonday;
+
+  const weeks=[];
+  for(let m=new Date(overallStart); m<=overallEndMonday; m=addDays(m,7)){
+    weeks.push(buildWeekBlock(new Date(m), st.events));
+  }
+  const anchorIndex = weeks.findIndex(w=>sameDate(w.monday, anchorMonday));
+  if(anchorIndex>=0) assignLabels(weeks, anchorIndex, st.anchorLabel);
+
+  const rangeEndSat = addDays(rangeEndMonday,5);
+  return weeks.filter(w => w.saturday >= pStart && w.monday <= rangeEndSat);
+}
+
+/* ===================== العنوان ===================== */
+function buildTitle(st){
+  if(st.customTitle && st.customTitle.trim()) return st.customTitle.trim();
+  const base="روزنامة الحصص نصف الشهرية";
+  if(st.titleMode==="trimester"){
+    const names={1:"الأول",2:"الثاني",3:"الثالث"};
+    return `${base}\nللثلاثي ${names[st.trimester]}`;
+  }
+  if(st.titleMode==="year"){
+    return `${base}\nللسنة الدراسية ${st.schoolYear||""}`.trim();
+  }
+  const s=parseDate(st.periodStart), e=parseDate(st.periodEnd);
+  if(!s||!e) return base;
+  return `${base}\nللفترة الممتدة من ${fmtFull(s)} إلى ${fmtFull(e)}`;
+}
+
+/* ===================== نموذج الإعدادات ===================== */
+function populateForm(){
+  document.getElementById("schoolName").value = state.schoolName;
+  document.getElementById("schoolYear").value = state.schoolYear;
+  document.getElementById("customTitle").value = state.customTitle;
+  document.querySelectorAll('input[name="titleMode"]').forEach(r=>{ r.checked = (r.value===state.titleMode); });
+  document.getElementById("trimester").value = state.trimester;
+  document.getElementById("trimesterWrap").style.display = state.titleMode==="trimester" ? "block":"none";
+  document.getElementById("periodStart").value = state.periodStart;
+  document.getElementById("periodEnd").value = state.periodEnd;
+  document.getElementById("anchorDate").value = state.anchorDate;
+  document.getElementById("anchorLabel").value = state.anchorLabel;
+  refreshTypeList();
+  resetEventForm();
+  renderEventsTable();
+}
+
+function refreshTypeList(){
+  const list = document.getElementById("typeList");
+  const types = uniq([...DEFAULT_TYPES, ...state.events.map(e=>e.type).filter(Boolean)]);
+  list.innerHTML = types.map(t=>`<option value="${t}"></option>`).join("");
+}
+
+function impactLabel(impact){
+  if(impact==="excludeWeek") return "استثناء الأسبوع بالكامل";
+  if(impact==="none") return "بدون تأثير (إعلامي)";
+  return "اقتطاع من الأسبوع";
+}
+
+function renderEventsTable(){
+  const body=document.getElementById("eventsBody");
+  const empty=document.getElementById("eventsEmpty");
+  const sorted=[...state.events].sort((a,b)=>a.start.localeCompare(b.start));
+  body.innerHTML="";
+  if(sorted.length===0){ empty.style.display="block"; return; } else { empty.style.display="none"; }
+  sorted.forEach(ev=>{
+    const tr=document.createElement("tr");
+    if(ev.id===editingId) tr.className="editing-row";
+    const s=parseDate(ev.start), e=parseDate(ev.end||ev.start);
+    const color=getTypeColor(ev.type);
+    tr.innerHTML = `
+      <td><span class="tag" style="background:${color}">${ev.type||"—"}</span></td>
+      <td><span class="impact-badge">${impactLabel(ev.impact)}</span></td>
+      <td>${fmtFull(s)}</td>
+      <td>${fmtFull(e)}</td>
+      <td>${ev.label ? ev.label : "—"}</td>
+      <td class="actions-cell">
+        <button class="btn-edit" data-edit="${ev.id}" type="button">تعديل</button>
+        <button class="btn-danger" data-del="${ev.id}" type="button">حذف</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("button[data-del]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(!confirm("حذف هذا العنصر؟")) return;
+      state.events = state.events.filter(ev=>ev.id!==btn.dataset.del);
+      if(editingId===btn.dataset.del) resetEventForm();
+      saveState(); refreshTypeList(); renderEventsTable(); renderReport();
+    });
+  });
+  body.querySelectorAll("button[data-edit]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const ev = state.events.find(x=>x.id===btn.dataset.edit);
+      if(ev) loadEventToForm(ev);
+    });
+  });
+}
+
+/* ===================== إضافة/تعديل الأحداث ===================== */
+let editingId=null;
+function toggleEndVisibility(){
+  const impact=document.getElementById("evImpact").value;
+  document.getElementById("evEndWrap").style.display = impact==="excludeWeek" ? "none" : "flex";
+}
+function loadEventToForm(ev){
+  editingId = ev.id;
+  document.getElementById("evImpact").value = ev.impact;
+  toggleEndVisibility();
+  document.getElementById("evType").value = ev.type;
+  document.getElementById("evStart").value = ev.start;
+  document.getElementById("evEnd").value = ev.end;
+  document.getElementById("evLabel").value = ev.label;
+  document.getElementById("addEventBtn").textContent = "حفظ التعديل";
+  document.getElementById("cancelEditBtn").style.display = "inline-block";
+  renderEventsTable();
+}
+function resetEventForm(){
+  editingId=null;
+  document.getElementById("evImpact").value="trim";
+  toggleEndVisibility();
+  document.getElementById("evType").value="";
+  document.getElementById("evStart").value="";
+  document.getElementById("evEnd").value="";
+  document.getElementById("evLabel").value="";
+  document.getElementById("addEventBtn").textContent="إضافة";
+  document.getElementById("cancelEditBtn").style.display="none";
+}
+
+/* ===================== عرض التقرير الكامل ===================== */
+let lastWeeks = [];
+let selectedWeekMonday = null;
+
+function renderReport(){
+  document.getElementById("outSchoolName").textContent = state.schoolName || "";
+  const titleParts = buildTitle(state).split("\n");
+  document.getElementById("outTitle").innerHTML = titleParts.join("<br>");
+  document.getElementById("outMeta").innerHTML = state.schoolYear ? `السنة الدراسية<br>${state.schoolYear}` : "";
+  document.getElementById("outFooterLeft").textContent = state.periodStart && state.periodEnd
+    ? `الفترة: ${fmtFull(parseDate(state.periodStart))} – ${fmtFull(parseDate(state.periodEnd))}` : "";
+
+  const weeks = computeWeeks(state);
+  buildLegend(weeks);
+
+  let cols=1;
+  if(weeks.length>12) cols=2;
+  if(weeks.length>24) cols=3;
+  if(weeks.length>40) cols=4;
+  if(weeks.length>60) cols=5;
+
+  buildWeeksGrid(weeks, cols);
+  fitToPage();
+
+  let attempts=0;
+  const printArea=document.getElementById("printArea");
+  while(parseFloat(getComputedStyle(printArea).fontSize) < 6.8 && cols<6 && attempts<3){
+    cols++; buildWeeksGrid(weeks, cols); fitToPage(); attempts++;
+  }
+
+  populateWeekSelect(weeks);
+}
+
+function buildLegend(weeks){
+  const legend=document.getElementById("legend");
+  const items=[
+    {color:"var(--week-a)", label:"الأسبوع (أ)"},
+    {color:"var(--week-b)", label:"الأسبوع (ب)"}
+  ];
+  const seen=new Set();
+  function addType(t){
+    if(t && !seen.has(t)){ seen.add(t); items.push({color:getTypeColor(t), label:t}); }
+  }
+  weeks.forEach(w=>{
+    if(w.closed) addType(w.closedType);
+    w.trimEvents.forEach(x=>addType(x.type));
+    w.noteEvents.forEach(x=>addType(x.type));
+  });
+  legend.innerHTML = items.map(it=>`<span><i style="background:${it.color}"></i>${it.label}</span>`).join("");
+}
+
+function noteForWeek(w){
+  const trimLabels = !w.closed ? uniq(w.trimEvents.map(x=>x.label).filter(Boolean)) : [];
+  const extraLabels = uniq(w.noteEvents.map(x=>x.label).filter(Boolean));
+  return [...trimLabels, ...extraLabels].join("، ");
+}
+
+function buildWeeksGrid(weeks, cols){
+  const grid=document.getElementById("weeksGrid");
+  const rows=Math.max(1, Math.ceil(weeks.length/cols));
+  grid.style.gridAutoFlow="column";
+  grid.style.gridTemplateColumns=`repeat(${cols}, 1fr)`;
+  grid.style.gridTemplateRows=`repeat(${rows}, auto)`;
+  grid.innerHTML="";
+
+  if(weeks.length===0){
+    grid.innerHTML = `<div class="empty-note">يرجى ضبط الفترة الزمنية والتاريخ المرجعي لعرض الروزنامة.</div>`;
+    return;
+  }
+
+  weeks.forEach(w=>{
+    const row=document.createElement("div");
+    let badgeText="", noteText="";
+
+    if(w.closed){
+      const color=getTypeColor(w.closedType);
+      row.className="week-row";
+      row.style.borderColor=color;
+      row.style.background=color+"14";
+      badgeText = w.closedType || "عطلة";
+      noteText = uniq([w.closedLabel, ...w.noteEvents.map(x=>x.label)].filter(Boolean)).join("، ");
+      row.innerHTML = `
+        <div class="week-range">${rangeLabel(w.effStart, w.effEnd)}</div>
+        <div class="week-side">
+          <div class="week-badge" style="background:#fff;color:${color};border:1.5px solid ${color};">${badgeText}</div>
+          ${noteText ? `<div class="week-note" title="${noteText}">${noteText}</div>` : ""}
+        </div>`;
+    } else {
+      row.className = "week-row " + (w.label==="أ" ? "week-a" : "week-b");
+      badgeText = w.label==="أ" ? "الأسبوع (أ)" : "الأسبوع (ب)";
+      noteText = noteForWeek(w);
+      row.innerHTML = `
+        <div class="week-range">${rangeLabel(w.effStart, w.effEnd)}</div>
+        <div class="week-side">
+          <div class="week-badge">${badgeText}</div>
+          ${noteText ? `<div class="week-note" title="${noteText}">${noteText}</div>` : ""}
+        </div>`;
+    }
+    grid.appendChild(row);
+  });
+}
+
+/* ===================== ملاءمة الروزنامة: أكبر خط ممكن ضمن ورقة واحدة ===================== */
+function fitToPage(){
+  const el=document.getElementById("printArea");
+  const MM=96/25.4;
+  const pageH=194*MM;
+  let fs=10;
+  el.style.fontSize=fs+"px";
+  for(let i=0;i<5;i++){
+    const h = el.scrollHeight;
+    let ratio = pageH / h;
+    ratio = Math.min(1.6, Math.max(0.6, ratio));
+    fs = Math.min(46, Math.max(5.5, fs*ratio*0.975));
+    el.style.fontSize = fs+"px";
+  }
+}
+
+/* ===================== إعلان أسبوع محدد ===================== */
+function populateWeekSelect(weeks){
+  lastWeeks = weeks;
+  const sel = document.getElementById("weekSelect");
+  sel.innerHTML = weeks.map(w=>{
+    const label = w.closed ? (w.closedType||"عطلة") : `الأسبوع (${w.label})`;
+    return `<option value="${toISO(w.monday)}">${rangeLabel(w.effStart,w.effEnd)} — ${label}</option>`;
+  }).join("");
+
+  if(weeks.length===0){ renderPoster(null); return; }
+
+  let target = weeks.find(w=>toISO(w.monday)===selectedWeekMonday);
+  if(!target){
+    const today=new Date(); today.setHours(0,0,0,0);
+    target = weeks.find(w=> today>=w.monday && today<=w.saturday) || weeks[0];
+  }
+  selectedWeekMonday = toISO(target.monday);
+  sel.value = selectedWeekMonday;
+  renderPoster(target);
+}
+
+function renderPoster(w){
+  const titleEl = document.getElementById("posterTitle");
+  const subEl = document.getElementById("posterSub");
+  const fromEl = document.getElementById("posterFrom");
+  const toEl = document.getElementById("posterTo");
+  const footEl = document.getElementById("posterFoot");
+
+  if(!w){
+    titleEl.textContent = "لا توجد أسابيع ضمن الفترة المحددة";
+    subEl.style.display="none"; fromEl.textContent=""; toEl.textContent=""; footEl.style.display="none";
+    return;
+  }
+
+  const titleText = w.closed ? (w.closedType || "عطلة") : `الأسبوع (${w.label})`;
+  titleEl.textContent = titleText;
+
+  if(w.closed && w.closedLabel){ subEl.textContent = w.closedLabel; subEl.style.display="block"; }
+  else { subEl.textContent=""; subEl.style.display="none"; }
+
+  fromEl.textContent = `من يوم ${dayName(w.effStart)} ${fmtFull(w.effStart)}`;
+  toEl.textContent = `إلى يوم ${dayName(w.effEnd)} ${fmtFull(w.effEnd)}`;
+
+  if(state.schoolName){ footEl.textContent = state.schoolName; footEl.style.display="block"; }
+  else { footEl.textContent=""; footEl.style.display="none"; }
+
+  fitPosterToPage();
+}
+
+function fitPosterToPage(){
+  const container = document.getElementById("weekPoster");
+  const MM = 96/25.4;
+  const PAD = 10; // مم، يطابق الحشو (padding) المعرّف في CSS
+  const availW = (281 - PAD*2) * MM;
+  const availH = (194 - PAD*2) * MM;
+  let fs = 60;
+  container.style.fontSize = fs+"px";
+  for(let i=0;i<6;i++){
+    const lines = container.querySelectorAll(".poster-title,.poster-sub,.poster-line");
+    let maxLineW = 0;
+    lines.forEach(l=>{ maxLineW = Math.max(maxLineW, l.scrollWidth); });
+    const totalH = container.scrollHeight;
+    if(maxLineW===0 || totalH===0) break;
+    let ratio = Math.min(availW/maxLineW, availH/totalH);
+    ratio = Math.min(1.6, Math.max(0.5, ratio));
+    fs = Math.min(260, Math.max(10, fs*ratio*0.96));
+    container.style.fontSize = fs+"px";
+  }
+}
+
+/* ===================== حفظ/استيراد/تصدير البيانات ===================== */
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `بيانات-روزنامة-${state.schoolYear ? state.schoolYear.replace("/","-") : "الحصص"}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(!confirm("سيتم استبدال البيانات الحالية بالبيانات المستوردة. هل تريد المتابعة؟")) return;
+      state = Object.assign(defaultState(), data);
+      selectedWeekMonday = null;
+      saveState();
+      populateForm();
+      renderReport();
+    }catch(err){
+      alert("تعذّر قراءة الملف، تأكد من أنه ملف بيانات صالح تم تصديره من هذا التطبيق.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ===================== الطباعة ===================== */
+function printCalendar(){
+  document.getElementById("posterPreviewWrap").classList.add("no-print");
+  document.getElementById("calendarPreviewWrap").classList.remove("no-print");
+  fitToPage();
+  window.print();
+}
+function printPoster(){
+  document.getElementById("calendarPreviewWrap").classList.add("no-print");
+  document.getElementById("posterPreviewWrap").classList.remove("no-print");
+  fitPosterToPage();
+  window.print();
+}
+
+/* ===================== ربط الأحداث ===================== */
+function bindInputs(){
+  document.getElementById("schoolName").addEventListener("input", e=>{ state.schoolName=e.target.value; saveState(); renderReport(); });
+  document.getElementById("schoolYear").addEventListener("input", e=>{ state.schoolYear=e.target.value; saveState(); renderReport(); });
+  document.getElementById("customTitle").addEventListener("input", e=>{ state.customTitle=e.target.value; saveState(); renderReport(); });
+  document.querySelectorAll('input[name="titleMode"]').forEach(r=>{
+    r.addEventListener("change", e=>{
+      state.titleMode=e.target.value;
+      document.getElementById("trimesterWrap").style.display = state.titleMode==="trimester" ? "block":"none";
+      saveState(); renderReport();
+    });
+  });
+  document.getElementById("trimester").addEventListener("change", e=>{ state.trimester=Number(e.target.value); saveState(); renderReport(); });
+  document.getElementById("periodStart").addEventListener("change", e=>{ state.periodStart=e.target.value; saveState(); renderReport(); });
+  document.getElementById("periodEnd").addEventListener("change", e=>{ state.periodEnd=e.target.value; saveState(); renderReport(); });
+  document.getElementById("anchorDate").addEventListener("change", e=>{ state.anchorDate=e.target.value; saveState(); renderReport(); });
+  document.getElementById("anchorLabel").addEventListener("change", e=>{ state.anchorLabel=e.target.value; saveState(); renderReport(); });
+
+  document.getElementById("evImpact").addEventListener("change", toggleEndVisibility);
+
+  document.getElementById("addEventBtn").addEventListener("click", ()=>{
+    const impact = document.getElementById("evImpact").value;
+    const type = document.getElementById("evType").value.trim() || "مناسبة";
+    const startRaw = document.getElementById("evStart").value;
+    const endRaw = document.getElementById("evEnd").value;
+    const label = document.getElementById("evLabel").value.trim();
+    if(!startRaw){ alert("يرجى تحديد تاريخ البداية."); return; }
+
+    let start, end;
+    if(impact==="excludeWeek"){
+      const mon=getMonday(parseDate(startRaw));
+      start=toISO(mon); end=toISO(addDays(mon,5));
+    } else {
+      start=startRaw; end = endRaw || startRaw;
+      if(parseDate(end) < parseDate(start)){ alert("تاريخ النهاية يجب أن يكون بعد تاريخ البداية."); return; }
+    }
+
+    if(editingId){
+      const idx = state.events.findIndex(ev=>ev.id===editingId);
+      if(idx>-1) state.events[idx] = Object.assign({}, state.events[idx], {impact, type, start, end, label});
+    } else {
+      state.events.push({ id: Date.now()+"_"+Math.random().toString(36).slice(2,7), impact, type, start, end, label });
+    }
+    saveState();
+    resetEventForm();
+    refreshTypeList();
+    renderEventsTable();
+    renderReport();
+  });
+
+  document.getElementById("cancelEditBtn").addEventListener("click", resetEventForm);
+
+  document.getElementById("refreshBtn").addEventListener("click", renderReport);
+  document.getElementById("printCalendarBtn").addEventListener("click", printCalendar);
+  document.getElementById("printPosterBtn").addEventListener("click", printPoster);
+  window.addEventListener("beforeprint", ()=>{ fitToPage(); fitPosterToPage(); });
+
+  document.getElementById("weekSelect").addEventListener("change", e=>{
+    selectedWeekMonday = e.target.value;
+    const w = lastWeeks.find(x=>toISO(x.monday)===selectedWeekMonday);
+    renderPoster(w);
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", exportData);
+  document.getElementById("importInput").addEventListener("change", e=>{
+    const file=e.target.files[0];
+    if(file) importData(file);
+    e.target.value="";
+  });
+  document.getElementById("clearEventsBtn").addEventListener("click", ()=>{
+    if(state.events.length===0) return;
+    if(!confirm("سيتم حذف كل الأحداث (العطل والأعياد والامتحانات والمناسبات). متابعة؟")) return;
+    state.events=[];
+    resetEventForm();
+    saveState(); refreshTypeList(); renderEventsTable(); renderReport();
+  });
+}
+
+/* ===================== التهيئة ===================== */
+populateForm();
+bindInputs();
+renderReport();
+</script>
+</body>
+</html>
